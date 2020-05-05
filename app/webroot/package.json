@@ -1,0 +1,16 @@
+{
+  "name": "CRM",
+  "version": "1.0.0",
+  "keywords": [
+    "bootstrap",
+    "css"
+  ],
+  "dependencies": {
+    "grunt": "^0.4.5"
+  },
+  "devDependencies": {
+    "grunt-contrib-cssmin": "^0.14.0",
+    "grunt-contrib-uglify": "*",
+    "grunt-contrib-watch": "*"
+  }
+}

@@ -1,0 +1,35 @@
+{
+    "name": "ericgao/webdata-extract-service",
+    "description": "",
+    "license": "proprietary",
+    "require": {
+        "cakephp/cakephp": "2.8.*",
+        "cakephp/debug_kit": "^2.2.0",
+        "josegonzalez/cakephp-environments": "1.0.1",
+        "oefenweb/cakephp-redis": "dev-master",
+        "php-amqplib/php-amqplib": "2.6.*",
+        "facebook/webdriver": "^1.6",
+        "fluentdom/fluentdom": "^7.3",
+        "fluentdom/selectors-symfony": "^3.1",
+        "fluentdom/selectors-phpcss": "^1.2"
+    },
+    "extra": {
+        "installer-paths": {
+            "app/Plugin/DebugKit": ["cakephp/debug_kit"],
+            "app/Plugin/Environments": ["josegonzalez/cakephp-environments"],
+            "app/Plugin/Redis": ["oefenweb/cakephp-redis"]
+        }
+    },
+    "scripts": {
+        "install:dev": [
+            "@composer install"
+        ],
+        "install:prod": [
+            "@composer validate --no-check-all --no-check-publish",
+            "@composer install --optimize-autoloader --no-dev"
+        ]
+    },
+    "config": {
+        "vendor-dir": "vendor/"
+    }
+}

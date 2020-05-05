@@ -1,0 +1,15 @@
+steps:
+- name: 'gcr.io/$PROJECT_ID/php-cli:legacy'
+  id: 'composer-install'
+  entrypoint: 'composer'
+  env:
+    - 'CAKE_ENV=cli'
+  args:
+    - 'run-script'
+    - 'install:prod'
+- name: 'gcr.io/$PROJECT_ID/atomic-ssh-deploy:1.0'
+  id: 'deploy'
+  waitFor:
+    - 'composer-install'
+  args:
+    - '/var/www/vhosts/services.ericgao.com/webdata-extract-service'

@@ -1,0 +1,167 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/*
+    Created on : 16/09/2016, 3:10:16 PM
+    Author     : Hieu Hoang
+*/
+.deleterow {
+    cursor: pointer;
+}
+#show-context, #hide-context {
+    cursor: pointer;
+}
+tr.has-error {
+    color: #ffffff;
+    background-color: #b94a48;
+}
+tr.has-warning {
+    color: #000000;
+    background-color: #f0ad4e;
+}
+tr.bank-line.context {
+    display: none;
+    opacity: 0.5;
+}
+tr.bank-line.context.has-error {
+    display: table-row;
+}
+tr.bank-line.context.context-hint {
+    display: table-row;
+    opacity: 0.5;
+}
+tr.context.context_spacer > td {
+    -webkit-box-shadow: inset 0px 2px 5px 0px rgba(0,0,0,0.3);
+    -moz-box-shadow: inset 0px 2px 5px 0px rgba(0,0,0,0.3);
+    box-shadow: inset 0px 2px 5px 0px rgba(0,0,0,0.3);
+    background-color: #EFEFEF;
+    font-size: 1.2em;
+    text-align: center;
+    opacity: 0.5;
+    padding: 2em;
+}
+tr.date_spacer > td {
+    -webkit-box-shadow: inset 0px 2px 5px 0px rgba(0,0,0,0.3);
+    -moz-box-shadow: inset 0px 2px 5px 0px rgba(0,0,0,0.3);
+    box-shadow: inset 0px 2px 5px 0px rgba(0,0,0,0.3);
+    background-color: #EFEFEF;
+    font-size: 1.2em;
+    text-align: center;
+    opacity: 0.5;
+    padding: 2em !important;
+}
+.show-context {
+    display: table-row !important;
+}
+#download-stats > li {
+    margin-top: 0.3em;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.15);
+    padding: 2px;
+    display: inline-block;
+}
+#matching-table {
+    margin-top: 5em;
+}
+#matching-table tr > th:nth-child(1) {
+    position: relative;
+}
+#matching-table tr > th:nth-child(5), #matching-table tr > td:nth-child(5) {
+    position: relative;
+    border-left: 1px solid #ddd;
+}
+#matching-table tr > th:nth-child(9), #matching-table tr > td:nth-child(9) {
+    border-left: 1px solid #ddd;
+}
+#matching-table tr > th:nth-child(1)::before {
+    font-size: 0.95em;
+    position: absolute;
+    top: -1.9em;
+    content: "Master File";
+}
+#matching-table tr > th:nth-child(5)::before {
+    font-size: 0.95em;
+    position: absolute;
+    top: -1.9em;
+    content: "Check File";
+}
+#review-table {
+    margin-top: 5em;
+}
+#review-table tr .divider {
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+}
+#review-table tr > th:nth-child(1) {
+    position: relative;
+}
+#review-table tr > th:nth-child(1)::before {
+    font-size: 0.95em;
+    position: absolute;
+    top: -1.9em;
+    content: "Master File";
+}
+#review-table tr > th:nth-child(10) {
+    position: relative;
+}
+#review-table tr > th:nth-child(10)::before {
+    font-size: 0.95em;
+    position: absolute;
+    top: -1.9em;
+    content: "Check File";
+}
+#review-table tr.status-exception td.divider {
+    background: rgba(255, 0, 0, 0.5);
+}
+#review-table tr.status-merged-m td.divider, #review-table tr.status-merged-c td.divider, #review-table tr.status-rejected td.divider {
+    background: rgba(0, 0, 255, 0.5);
+}
+#review-table tr.status-rejected {
+    opacity: 0.5;
+    text-decoration: line-through;
+}
+#review-table td.divider {
+    vertical-align: middle;
+    color: #FFF;
+}
+.reverse-text {
+    transform: scale(-1, 1) !important;
+}
+.hideColsTable {
+    border: 1px solid #ddd;
+    border-spacing: 4px;
+    border-collapse: separate;
+}
+.hideColsTable th, .hideColsTable td {
+    padding-right: 7px;
+}
+table.hideRef tr > th:nth-child(3), table.hideRef tr > td:nth-child(3), table.hideRef tr > th:nth-child(12), table.hideRef tr > td:nth-child(12) {
+    display: none;
+}
+table.hidePart tr > th:nth-child(4), table.hidePart tr > td:nth-child(4), table.hidePart tr > th:nth-child(13), table.hidePart tr > td:nth-child(13) {
+    display: none;
+}
+table.hideCode tr > th:nth-child(5), table.hideCode tr > td:nth-child(5), table.hideCode tr > th:nth-child(14), table.hideCode tr > td:nth-child(14) {
+    display: none;
+}
+table.hideAmt tr > th:nth-child(6), table.hideAmt tr > td:nth-child(6), table.hideAmt tr > th:nth-child(15), table.hideAmt tr > td:nth-child(15) {
+    display: none;
+}
+.statement-line .lines-imported {
+    position: relative;
+}
+.statement-line:hover span.removeStatement {
+    display: inline;
+}
+span.removeStatement {
+    display: none;
+    position: absolute;
+    right: 4px;
+    top: 5px;
+    color: #FF0000;
+    opacity: 0.5;
+    cursor: pointer;
+}

@@ -1,0 +1,53 @@
+version: '3'
+
+services:
+    server:
+        build:
+            context: ./
+            dockerfile: .docker/server/Dockerfile
+            args:
+                - APACHE_DOCUMENT_ROOT=/var/www/html/app/webroot
+                - PROJECT_SRC_PATH=.
+        networks:
+            development-stack:
+                aliases:
+                    - service.webdata-extract-service.v1.docker
+        volumes:
+            - .:/var/www/html
+
+    composer:
+        image: gcr.io/or-core-production/php-cli:legacy
+        entrypoint: composer
+        volumes:
+            - composer-data:/root/composer/
+            - .:/var/www/html
+
+    phantomjs:
+        image: wernight/phantomjs
+        command: ['phantomjs', '--webdriver=4445']
+        ports:
+            - "4445:4445"
+        networks:
+            development-stack:
+                aliases:
+                    - phantomjs
+    
+    chromedriver:
+        image: selenium/standalone-chrome:3.8.1-francium
+        ports:
+            - "4444:4444"
+        networks:
+            development-stack:
+                aliases:
+                    - chromedriver
+        environment:
+            - START_XVFB=false
+            - SE_OPTS=-enablePassThrough false
+
+networks:
+    development-stack:
+      external:
+        name: ${DEVELOPMENT_STACK_NETWORK:-or-development-stack_default}
+
+volumes:
+    composer-data:
