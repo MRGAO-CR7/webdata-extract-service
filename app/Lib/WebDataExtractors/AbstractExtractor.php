@@ -3,23 +3,11 @@
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
 
-// App::uses('File', 'Utility');
-// App::uses('Folder', 'Utility');
-// App::uses('RabbitMQ', 'Lib');
-// App::uses('ConnectionManager', 'Model');
-
 abstract class AbstractExtractor
 {
-    // const IN_DATE_FORMAT = 'd/m/Y';
-    // const DOWNLOAD_REDIS_DB = 10;
     private $host = 'http://localhost:4444/wd/hub'; // this is the default
     public $driver;
     private $enableWaits = true;
-    // protected $Redis;
-    // protected $progressAction;
-    // protected $progressPercent;
-    // protected $user;
-    // protected $pwd;
 
     public function __construct()
     {
@@ -36,12 +24,12 @@ abstract class AbstractExtractor
     /**
      * This function is to queue all $extractions.
      */
-    abstract protected function queue($options = array());
+    abstract protected function queue($options);
 
     /**
      * This function is to extract all data.
      */
-    abstract protected function extract($options = array());
+    abstract protected function extract($options);
 
     /**
      * The entry point function for running the automation process.
@@ -50,7 +38,7 @@ abstract class AbstractExtractor
      * 
      * @return integer Returns the extractor id.
      */
-    public function run($step, $options = array())
+    public function run($step, $options)
     {
         if ($step == 'queue') {
             $result = $this->queue($options);
