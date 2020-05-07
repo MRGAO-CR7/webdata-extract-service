@@ -58,9 +58,9 @@ class InstagramExtractor extends AbstractExtractor
 
         $spanElements = $this->driver->findElements(WebDriverBy::cssSelector("span.g47SY"));
 
-        App::uses('Blog', 'Model');
-        $blog = new Blog();
-        $blog->save([
+        App::uses('ExtractionDetail', 'Model');
+        $extractionDetail = new ExtractionDetail();
+        $extractionDetail->save([
             'extraction_id' => $options['extraction_id'],
             'label' => $options['link'],
             'name' => $userName,

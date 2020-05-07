@@ -4,6 +4,8 @@
  * The Extractions Model
  */
 
+App::uses('AppModel', 'Model');
+
 class Extraction extends AppModel
 {
     /**
@@ -12,6 +14,6 @@ class Extraction extends AppModel
      * @var type
      */
     public $hasMany = array(
-        'Blog'
+        'ExtractionDetail'
     );
 }
