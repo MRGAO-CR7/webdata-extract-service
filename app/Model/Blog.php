@@ -8,7 +8,7 @@ App::uses('AppModel', 'Model');
 
 class Blog extends AppModel
 {
-    public function addOrUpdateBlog($options)
+    public function addOrUpdate($options)
     {
         if ($result = $this->findByName($options['name'])) {
             if ($result['Blog']['posts'] <> $options['posts']

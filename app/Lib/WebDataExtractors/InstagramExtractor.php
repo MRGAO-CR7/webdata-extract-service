@@ -62,12 +62,33 @@ class InstagramExtractor extends AbstractExtractor
 
         App::uses('Blog', 'Model');
         $blog = new Blog();
-        $options['blog_id'] = $blog->addOrUpdateBlog($options);
+        $options['blog_id'] = $blog->addOrUpdate($options);
 
-        App::uses('ExtractionDetail', 'Model');
-        $extractionDetail = new ExtractionDetail();
-        $extractionDetail->save($options);
+        $this->saveExtractionDetail($options);
+        $this->saveTagBlog($options);
 
         return true;
+    }
+
+    private function saveExtractionDetail($options)
+    {
+        App::uses('ExtractionDetail', 'Model');
+        $extractionDetail = new ExtractionDetail();
+
+        try {
+            $extractionDetail->save($options);
+        } catch (Exception $e) {
+        }
+    }
+
+    private function saveTagBlog($options)
+    {
+        App::uses('TagBlog', 'Model');
+        $tagBlog = new TagBlog();
+
+        try {
+            $tagBlog->save($options);
+        } catch (Exception $e) {
+        }
     }
 }
