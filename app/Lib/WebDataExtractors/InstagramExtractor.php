@@ -17,26 +17,34 @@ class InstagramExtractor extends AbstractExtractor
         $this->driver->get('https://www.instagram.com/explore/tags/' . $options['tag']);
 
         $this->waitUntil(10, WebDriverExpectedCondition::presenceOfAllElementsLocatedBy(
-            WebDriverBy::cssSelector("div._4emnV")
+            WebDriverBy::cssSelector("footer._8Rna9")
         ));
 
-        $htmlString = $this->driver->getPageSource();
-        $preg = '/<a .*?href="\/p\/(.*?)\/".*?>/is';
-        preg_match_all($preg, $htmlString, $match);
+        $count = 0;
+        $labels = [];
+        do {
+            $this->driver->executeScript("window.scrollTo(0, (document.body.scrollHeight))");
+            $count += 1;
 
-        foreach ($match[1] as $label) {
-            $payload = $options;
-            $payload['label'] = $label;
-            unset($payload['tag']);
+            $htmlString = $this->driver->getPageSource();
+            $preg = '/<a .*?href="\/p\/(.*?)\/".*?>/is';
+            preg_match_all($preg, $htmlString, $match);
+
+            foreach ($match[1] as $label) {
+                $labels[$label] = $label;
+            }
+        } while ($count < 400);
+
+        unset($options['tag']);
+        foreach ($labels as $label) {
+            $options['label'] = $label;
 
             App::uses('RabbitMQ', 'Lib');
             $RabbitMQ = new RabbitMQ;
             $RabbitMQ->setQueue('data_extract');
             $channel = $RabbitMQ->getChannel($RabbitMQ->getConnection());
-            $RabbitMQ->publishMessage($channel, $payload);
+            $RabbitMQ->publishMessage($channel, $options);
         }
-
-        return count($match[1]);
     }
 
     protected function extract($options)
@@ -52,7 +60,7 @@ class InstagramExtractor extends AbstractExtractor
 
         $this->driver->get($options['url_link']);
         $this->waitUntil(10, WebDriverExpectedCondition::presenceOfAllElementsLocatedBy(
-            WebDriverBy::cssSelector("div.Z2m7o")
+            WebDriverBy::cssSelector("footer._8Rna9")
         ));
 
         $spanElements = $this->driver->findElements(WebDriverBy::cssSelector("span.g47SY"));

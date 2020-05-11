@@ -6,6 +6,7 @@
 App::uses('InstagramExtractor', 'Lib/WebDataExtractors');
 App::uses('AbstractExtractor', 'Lib/WebDataExtractors');
 App::uses('Tag', 'Model');
+App::uses('RabbitMQ', 'Lib');
 
 class ExtractionsController extends AppController
 {
@@ -21,28 +22,29 @@ class ExtractionsController extends AppController
 
         $this->request->data['website'] = 'https://www.instagram.com/';
         $this->request->data['created'] = date('Y-m-d H:i:s');
-        $requestData = $this->request->data;
+        $options = $this->request->data;
         $this->request->data['keywords'] = urlencode($this->request->data['keywords']);
 
         if ($extraction = $this->Extraction->save($this->request->data)) {
-            $tags = explode(",", $requestData['keywords']);
+            $tags = explode(",", $options['keywords']);
 
             $data = [];
             $idx = 0;
             foreach ($tags as $tag) {
-                $requestData['extraction_id'] = $extraction['Extraction']['id'];
-                $requestData['tag'] = urlencode($tag);
+                $options['extraction_id'] = $extraction['Extraction']['id'];
+                $options['tag'] = urlencode($tag);
 
-                $tagId = $this->findOrCreateTag($requestData);
-                $requestData['tag_id'] = $tagId;
-                unset($requestData['keywords']);
+                $tagId = $this->findOrCreateTag($options);
+                $options['tag_id'] = $tagId;
+                unset($options['keywords']);
 
-                $extractor = new InstagramExtractor();
-                $count = $extractor->run('queue', $requestData);
+                $RabbitMQ = new RabbitMQ;
+                $RabbitMQ->setQueue('labels_extract');
+                $channel = $RabbitMQ->getChannel($RabbitMQ->getConnection());
+                $RabbitMQ->publishMessage($channel, $options);
 
                 $data[$idx]['tag'] = $tag;
-                $data[$idx]['count'] = $count;
-                $data[$idx]['tag_encoded'] = $requestData['tag'];
+                $data[$idx]['tag_encoded'] = $options['tag'];
                 $idx++;
             }
 
@@ -60,6 +62,12 @@ class ExtractionsController extends AppController
             $this->set('code', '400');
             $this->set('_serialize', array('status', 'code'));
         }
+    }
+
+    public function queue()
+    {
+        $extractor = new InstagramExtractor();
+        $extractor->run('queue', $this->request->data);
     }
 
     public function extract()
@@ -88,16 +96,16 @@ class ExtractionsController extends AppController
         $this->set('_serialize', array('status', 'code'));
     }
 
-    private function findOrCreateTag($requestData)
+    private function findOrCreateTag($options)
     {
         $this->loadModel('Tag');
-        if ($result = $this->Tag->findByName($requestData['tag'])) {
+        if ($result = $this->Tag->findByName($options['tag'])) {
             return $result['Tag']['id'];
         }
 
         $this->Tag->create();
-        $data['name'] = $requestData['tag'];
-        $data['created'] = $requestData['created'];
+        $data['name'] = $options['tag'];
+        $data['created'] = $options['created'];
         if ($result = $this->Tag->save($data)) {
             return $result['Tag']['id'];
         }
