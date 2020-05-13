@@ -68,6 +68,33 @@ class ExtractionsController extends AppController
     {
         $extractor = new InstagramExtractor();
         $extractor->run('queue', $this->request->data);
+
+        $this->set('status', 'success');
+        $this->set('code', '200');
+        $this->set('description', 'ran the main queue successfully.');
+        $this->set('_serialize', array('status', 'code', 'description'));
+    }
+
+    public function sub_queue()
+    {
+        $options = $this->request->data;
+        $labels = $options['labels'];
+        unset($options['labels']);
+
+        foreach ($labels as $label) {
+            $options['label'] = $label;
+
+            App::uses('RabbitMQ', 'Lib');
+            $RabbitMQ = new RabbitMQ;
+            $RabbitMQ->setQueue('data_extract');
+            $channel = $RabbitMQ->getChannel($RabbitMQ->getConnection());
+            $RabbitMQ->publishMessage($channel, $options);
+        }
+
+        $this->set('status', 'success');
+        $this->set('code', '200');
+        $this->set('description', 'ran the sub queue successfully.');
+        $this->set('_serialize', array('status', 'code', 'description'));
     }
 
     public function extract()

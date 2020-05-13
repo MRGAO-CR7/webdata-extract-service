@@ -36,15 +36,13 @@ class InstagramExtractor extends AbstractExtractor
         } while ($count < 400);
 
         unset($options['tag']);
-        foreach ($labels as $label) {
-            $options['label'] = $label;
+        $options['labels'] = $labels;
 
-            App::uses('RabbitMQ', 'Lib');
-            $RabbitMQ = new RabbitMQ;
-            $RabbitMQ->setQueue('data_extract');
-            $channel = $RabbitMQ->getChannel($RabbitMQ->getConnection());
-            $RabbitMQ->publishMessage($channel, $options);
-        }
+        App::uses('RabbitMQ', 'Lib');
+        $RabbitMQ = new RabbitMQ;
+        $RabbitMQ->setQueue('sub_queue_run');
+        $channel = $RabbitMQ->getChannel($RabbitMQ->getConnection());
+        $RabbitMQ->publishMessage($channel, $options);
     }
 
     protected function extract($options)
