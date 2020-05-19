@@ -6,6 +6,9 @@
 App::uses('InstagramExtractor', 'Lib/WebDataExtractors');
 App::uses('AbstractExtractor', 'Lib/WebDataExtractors');
 App::uses('Tag', 'Model');
+App::uses('Label', 'Model');
+App::uses('TagLabel', 'Model');
+App::uses('ExtractionDetail', 'Model');
 App::uses('RabbitMQ', 'Lib');
 
 class ExtractionsController extends AppController
@@ -16,46 +19,40 @@ class ExtractionsController extends AppController
             throw new BadRequestException('The wrong HTTP method was used in requesting this endpoint.');
         }
 
-        if (empty($this->request->data['keywords'])) {
-            throw new BadRequestException('Cannot process request. The `keywords` is missing from the request.');
+        if (empty($this->request->data['tag'])) {
+            throw new BadRequestException('Cannot process request. The `tag` is missing from the request.');
+        }
+
+        if (empty($this->request->data['height'])) {
+            $this->request->data['height'] = 0;
         }
 
         $this->request->data['website'] = 'https://www.instagram.com/';
         $this->request->data['created'] = date('Y-m-d H:i:s');
         $options = $this->request->data;
-        $this->request->data['keywords'] = urlencode($this->request->data['keywords']);
+        $this->request->data['tag'] = urlencode($this->request->data['tag']);
 
         if ($extraction = $this->Extraction->save($this->request->data)) {
-            $tags = explode(",", $options['keywords']);
+            $options['extraction_id'] = $extraction['Extraction']['id'];
+            $options['tag'] = urlencode($this->request->data['tag']);
 
-            $data = [];
-            $idx = 0;
-            foreach ($tags as $tag) {
-                $options['extraction_id'] = $extraction['Extraction']['id'];
-                $options['tag'] = urlencode($tag);
+            $tagId = $this->findOrCreateTag($options);
+            $options['tag_id'] = $tagId;
 
-                $tagId = $this->findOrCreateTag($options);
-                $options['tag_id'] = $tagId;
-                unset($options['keywords']);
-
-                $RabbitMQ = new RabbitMQ;
-                $RabbitMQ->setQueue('labels_extract');
-                $channel = $RabbitMQ->getChannel($RabbitMQ->getConnection());
-                $RabbitMQ->publishMessage($channel, $options);
-
-                $data[$idx]['tag'] = $tag;
-                $data[$idx]['tag_encoded'] = $options['tag'];
-                $idx++;
-            }
+            $extractor = new InstagramExtractor();
+            $extraction['Extraction']['height'] = $extractor->run('queue', $options);
+            $this->Extraction->save($extraction['Extraction']);
 
             $this->set('status', 'success');
             $this->set('code', '200');
             $this->set('extraction_id', $extraction['Extraction']['id']);
             $this->set('website', $extraction['Extraction']['website']);
-            $this->set('data', $data);
+            $this->set('tag', $this->request->data['tag']);
+            $this->set('tag_encoded', $options['tag']);
+            $this->set('height', $extraction['Extraction']['height']);
 
             $this->set('_serialize', array(
-                'status', 'code', 'extraction_id', 'website', 'data'
+                'status', 'code', 'extraction_id', 'website', 'tag', 'tag_encoded', 'height'
             ));
         } else {
             $this->set('status', 'failed');
@@ -64,14 +61,21 @@ class ExtractionsController extends AppController
         }
     }
 
-    public function queue()
+    public function labels_extract()
     {
-        $extractor = new InstagramExtractor();
-        $extractor->run('queue', $this->request->data);
+        $options = $this->request->data;
+        $labelId = $this->findOrCreateLabel($options);
+        $options['label_id'] = $labelId;
+
+        $this->saveTagLabel($options);
+
+        $this->loadModel('ExtractionDetail');
+        $this->ExtractionDetail->save($options);
+
 
         $this->set('status', 'success');
         $this->set('code', '200');
-        $this->set('description', 'ran the main queue successfully.');
+        $this->set('description', 'ran the labels_extract queue successfully.');
         $this->set('_serialize', array('status', 'code', 'description'));
     }
 
@@ -136,7 +140,29 @@ class ExtractionsController extends AppController
         if ($result = $this->Tag->save($data)) {
             return $result['Tag']['id'];
         }
+    }
 
-        throw new Exception('DB Error: Saving a tag failed.');
+    private function findOrCreateLabel($options)
+    {
+        $this->loadModel('Label');
+        if ($result = $this->Label->findByName($options['label'])) {
+            return $result['Label']['id'];
+        }
+
+        $this->Label->create();
+        $data['name'] = $options['label'];
+        $data['created'] = $options['created'];
+        if ($result = $this->Label->save($data)) {
+            return $result['Label']['id'];
+        }
+    }
+
+    private function saveTagLabel($options)
+    {
+        $this->loadModel('TagLabel');
+        try {
+            $this->TagLabel->save($options);
+        } catch (Exception $e) {
+        }
     }
 }
