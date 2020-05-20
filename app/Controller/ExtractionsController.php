@@ -22,37 +22,34 @@ class ExtractionsController extends AppController
         if (empty($this->request->data['tag'])) {
             throw new BadRequestException('Cannot process request. The `tag` is missing from the request.');
         }
-
-        if (empty($this->request->data['height'])) {
-            $this->request->data['height'] = 0;
-        }
+        $tag = $this->request->data['tag'];
 
         $this->request->data['website'] = 'https://www.instagram.com/';
         $this->request->data['created'] = date('Y-m-d H:i:s');
         $options = $this->request->data;
-        $this->request->data['tag'] = urlencode($this->request->data['tag']);
+        $options['tag'] = $this->request->data['tag'] = urlencode($this->request->data['tag']);
+        $tagId = $this->findOrCreateTag($options);
+        $options['tag_id'] = $tagId;
 
         if ($extraction = $this->Extraction->save($this->request->data)) {
             $options['extraction_id'] = $extraction['Extraction']['id'];
-            $options['tag'] = urlencode($this->request->data['tag']);
-
-            $tagId = $this->findOrCreateTag($options);
-            $options['tag_id'] = $tagId;
 
             $extractor = new InstagramExtractor();
-            $extraction['Extraction']['height'] = $extractor->run('queue', $options);
+            $extraction['Extraction']['labels'] = $extractor->run('queue', $options);
+            $extraction['Extraction']['tag_id'] = $tagId;
             $this->Extraction->save($extraction['Extraction']);
 
             $this->set('status', 'success');
             $this->set('code', '200');
             $this->set('extraction_id', $extraction['Extraction']['id']);
             $this->set('website', $extraction['Extraction']['website']);
-            $this->set('tag', $this->request->data['tag']);
+            $this->set('tag_id', $tagId);
+            $this->set('tag', $tag);
             $this->set('tag_encoded', $options['tag']);
-            $this->set('height', $extraction['Extraction']['height']);
+            $this->set('labels', $extraction['Extraction']['labels']);
 
             $this->set('_serialize', array(
-                'status', 'code', 'extraction_id', 'website', 'tag', 'tag_encoded', 'height'
+                'status', 'code', 'extraction_id', 'website', 'tag_id', 'tag', 'tag_encoded', 'labels'
             ));
         } else {
             $this->set('status', 'failed');
@@ -64,18 +61,22 @@ class ExtractionsController extends AppController
     public function labels_extract()
     {
         $options = $this->request->data;
-        $labelId = $this->findOrCreateLabel($options);
-        $options['label_id'] = $labelId;
 
-        $this->saveTagLabel($options);
+        foreach ($options['labels'] as $label) {
+            $options['label'] = $label;
+            $labelId = $this->findOrCreateLabel($options);
+            $options['label_id'] = $labelId;
 
-        $this->loadModel('ExtractionDetail');
-        $this->ExtractionDetail->save($options);
+            $this->saveTagLabel($options);
 
+            $this->loadModel('ExtractionDetail');
+            $this->ExtractionDetail->create();
+            $this->ExtractionDetail->save($options);
+        }
 
         $this->set('status', 'success');
         $this->set('code', '200');
-        $this->set('description', 'ran the labels_extract queue successfully.');
+        $this->set('description', 'Saved '.count($options['labels']).' labels successfully.');
         $this->set('_serialize', array('status', 'code', 'description'));
     }
 
@@ -161,6 +162,7 @@ class ExtractionsController extends AppController
     {
         $this->loadModel('TagLabel');
         try {
+            $this->TagLabel->create();
             $this->TagLabel->save($options);
         } catch (Exception $e) {
         }

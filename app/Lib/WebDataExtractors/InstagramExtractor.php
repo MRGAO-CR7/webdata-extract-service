@@ -20,10 +20,6 @@ class InstagramExtractor extends AbstractExtractor
             WebDriverBy::cssSelector("footer._8Rna9")
         ));
 
-        $this->driver->executeScript("window.scrollTo(0, (".$options['height']."))");
-
-        var_dump($this->driver->executeScript("return document.body.scrollHeight"));
-
         $count = 0;
         $labels = [];
         do {
@@ -37,23 +33,18 @@ class InstagramExtractor extends AbstractExtractor
             foreach ($match[1] as $label) {
                 $labels[$label] = $label;
             }
-        } while ($count < 300);
+        } while ($count < 350);
 
         unset($options['tag']);
-        // $options['labels'] = $labels;
-        foreach ($labels as $label) {
-            $options['label'] = $label;
 
-            App::uses('RabbitMQ', 'Lib');
-            $RabbitMQ = new RabbitMQ;
-            $RabbitMQ->setQueue('labels_extract');
-            $channel = $RabbitMQ->getChannel($RabbitMQ->getConnection());
-            $RabbitMQ->publishMessage($channel, $options);
-        }
+        $options['labels'] = $labels;
+        App::uses('RabbitMQ', 'Lib');
+        $RabbitMQ = new RabbitMQ;
+        $RabbitMQ->setQueue('labels_extract');
+        $channel = $RabbitMQ->getChannel($RabbitMQ->getConnection());
+        $RabbitMQ->publishMessage($channel, $options);
 
-        var_dump($this->driver->executeScript("return document.body.scrollHeight"));
-        // exit;
-        return $this->driver->executeScript("return document.body.scrollHeight");
+        return count($labels);
     }
 
     protected function extract($options)
